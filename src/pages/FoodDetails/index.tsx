@@ -12,6 +12,8 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import formatValue from '../../utils/formatValue';
 
+import OrderCompleted from '../../components/OrderCompleted';
+
 import api from '../../services/api';
 
 import {
@@ -62,6 +64,7 @@ interface Food {
 
 const FoodDetails: React.FC = () => {
   const [food, setFood] = useState({} as Food);
+  const [showModal, setShowModal] = useState(false);
   const [extras, setExtras] = useState<Extra[]>([]);
   const [isFavorite, setIsFavorite] = useState(false);
   const [foodQuantity, setFoodQuantity] = useState(1);
@@ -173,11 +176,11 @@ const FoodDetails: React.FC = () => {
         extras: extras.filter(el => el.quantity > 0),
       })
       .then(() => {
-        Alert.alert(
-          'Pedido concluído',
-          'Seu pedido foi concluído, e ficará pronto em breve!',
-        );
-        navigation.navigate('MainBottom');
+        setShowModal(true);
+        setTimeout(() => {
+          setShowModal(false);
+          navigation.navigate('MainBottom');
+        }, 2000);
       });
   }
 
@@ -202,88 +205,92 @@ const FoodDetails: React.FC = () => {
   }, [navigation, favoriteIconName, toggleFavorite]);
 
   return (
-    <Container>
-      <Header />
+    <>
+      <OrderCompleted show={showModal} />
 
-      <ScrollContainer>
-        <FoodsContainer>
-          <Food>
-            <FoodImageContainer>
-              <Image
-                style={{ width: 327, height: 183 }}
-                source={{
-                  uri: food.image_url,
-                }}
-              />
-            </FoodImageContainer>
-            <FoodContent>
-              <FoodTitle>{food.name}</FoodTitle>
-              <FoodDescription>{food.description}</FoodDescription>
-              <FoodPricing>{food.formattedPrice}</FoodPricing>
-            </FoodContent>
-          </Food>
-        </FoodsContainer>
-        <AdditionalsContainer>
-          <Title>Adicionais</Title>
-          {extras.map(extra => (
-            <AdittionalItem key={extra.id}>
-              <AdittionalItemText>{extra.name}</AdittionalItemText>
-              <AdittionalQuantity>
+      <Container>
+        <Header />
+
+        <ScrollContainer>
+          <FoodsContainer>
+            <Food>
+              <FoodImageContainer>
+                <Image
+                  style={{ width: 327, height: 183 }}
+                  source={{
+                    uri: food.image_url,
+                  }}
+                />
+              </FoodImageContainer>
+              <FoodContent>
+                <FoodTitle>{food.name}</FoodTitle>
+                <FoodDescription>{food.description}</FoodDescription>
+                <FoodPricing>{food.formattedPrice}</FoodPricing>
+              </FoodContent>
+            </Food>
+          </FoodsContainer>
+          <AdditionalsContainer>
+            <Title>Adicionais</Title>
+            {extras.map(extra => (
+              <AdittionalItem key={extra.id}>
+                <AdittionalItemText>{extra.name}</AdittionalItemText>
+                <AdittionalQuantity>
+                  <Icon
+                    size={15}
+                    color="#6C6C80"
+                    name="minus"
+                    onPress={() => handleDecrementExtra(extra.id)}
+                    testID={`decrement-extra-${extra.id}`}
+                  />
+                  <AdittionalItemText testID={`extra-quantity-${extra.id}`}>
+                    {extra.quantity}
+                  </AdittionalItemText>
+                  <Icon
+                    size={15}
+                    color="#6C6C80"
+                    name="plus"
+                    onPress={() => handleIncrementExtra(extra.id)}
+                    testID={`increment-extra-${extra.id}`}
+                  />
+                </AdittionalQuantity>
+              </AdittionalItem>
+            ))}
+          </AdditionalsContainer>
+          <TotalContainer>
+            <Title>Total do pedido</Title>
+            <PriceButtonContainer>
+              <TotalPrice testID="cart-total">{cartTotal}</TotalPrice>
+              <QuantityContainer>
                 <Icon
                   size={15}
                   color="#6C6C80"
                   name="minus"
-                  onPress={() => handleDecrementExtra(extra.id)}
-                  testID={`decrement-extra-${extra.id}`}
+                  onPress={handleDecrementFood}
+                  testID="decrement-food"
                 />
-                <AdittionalItemText testID={`extra-quantity-${extra.id}`}>
-                  {extra.quantity}
+                <AdittionalItemText testID="food-quantity">
+                  {foodQuantity}
                 </AdittionalItemText>
                 <Icon
                   size={15}
                   color="#6C6C80"
                   name="plus"
-                  onPress={() => handleIncrementExtra(extra.id)}
-                  testID={`increment-extra-${extra.id}`}
+                  onPress={handleIncrementFood}
+                  testID="increment-food"
                 />
-              </AdittionalQuantity>
-            </AdittionalItem>
-          ))}
-        </AdditionalsContainer>
-        <TotalContainer>
-          <Title>Total do pedido</Title>
-          <PriceButtonContainer>
-            <TotalPrice testID="cart-total">{cartTotal}</TotalPrice>
-            <QuantityContainer>
-              <Icon
-                size={15}
-                color="#6C6C80"
-                name="minus"
-                onPress={handleDecrementFood}
-                testID="decrement-food"
-              />
-              <AdittionalItemText testID="food-quantity">
-                {foodQuantity}
-              </AdittionalItemText>
-              <Icon
-                size={15}
-                color="#6C6C80"
-                name="plus"
-                onPress={handleIncrementFood}
-                testID="increment-food"
-              />
-            </QuantityContainer>
-          </PriceButtonContainer>
+              </QuantityContainer>
+            </PriceButtonContainer>
 
-          <FinishOrderButton onPress={() => handleFinishOrder()}>
-            <ButtonText>Confirmar pedido</ButtonText>
-            <IconContainer>
-              <Icon name="check-square" size={24} color="#fff" />
-            </IconContainer>
-          </FinishOrderButton>
-        </TotalContainer>
-      </ScrollContainer>
-    </Container>
+            <FinishOrderButton onPress={() => handleFinishOrder()}>
+              <ButtonText>Confirmar pedido</ButtonText>
+              <IconContainer>
+                <Icon name="check-square" size={24} color="#fff" />
+              </IconContainer>
+            </FinishOrderButton>
+          </TotalContainer>
+        </ScrollContainer>
+      </Container>
+    </>
   );
 };
 
