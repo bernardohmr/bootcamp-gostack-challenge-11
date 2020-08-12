@@ -171,6 +171,7 @@ const FoodDetails: React.FC = () => {
       .post('orders', {
         ...food,
         id: undefined,
+        quantity: foodQuantity,
         extras: extras.filter(el => el.quantity > 0),
       })
       .then(() => {
